@@ -58,7 +58,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M6</version>
                 <configuration>
-                    <testFailureIgnore>true</testFailureIgnore><argLine>-javaagent:"${com.browserstack:browserstack-java-sdk:jar}"</argLine>
                     <runOrder>Alphabetical</runOrder>
                     <!--  <rerunFailingTestsCount>2</rerunFailingTestsCount> -->
                     <includes>
