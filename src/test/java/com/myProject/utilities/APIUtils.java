@@ -14,24 +14,22 @@ public class APIUtils {
     private static final String API_URL = "https://rapid-translate-multi-traduction.p.rapidapi.com/t";
     private static final String API_KEY = "ea0803d75fmsha8ca955d52b3e20p159cdcjsnd3fcae71a28d"; // Replace with your key
 
-    public static String translateText(String text, String targetLanguage) {
-        String translatedText = "";
+    public static String translateText(String text, String targetLanguage) throws IOException, InterruptedException {
+
+
+       String translatedText = "";
 
         try {
-            // Prepare the request body as JSON
-            String requestBody = String.format(
-                    "{\"from\":\"es\",\"to\":\"%s\",\"text\":\"%s\"}",
-                    targetLanguage,
-                    text
-            );
-           System.out.println(requestBody);
+            // Prepare the request body as JSON using string concatenation
+            String requestBody = "{\"from\":\"es\",\"to\":\"" + targetLanguage + "\",\"q\":\"" + text + "\"}";
+            System.out.println(requestBody);
+
+            // Create the request with headers and body
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(API_URL))
-                    .header("Accept", "application/json")
-                    .header("Content-Type", "application/json")
                     .header("x-rapidapi-key", API_KEY)
                     .header("x-rapidapi-host", "rapid-translate-multi-traduction.p.rapidapi.com")
-                    .header("x-rapidapi-ua", "RapidAPI-Playground")
+                    .header("Content-Type", "application/json")
                     .method("POST", HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
@@ -58,4 +56,5 @@ public class APIUtils {
 
         return translatedText;
     }
+
 }

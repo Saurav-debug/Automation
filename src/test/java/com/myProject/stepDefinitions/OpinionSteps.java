@@ -12,13 +12,17 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 
 import static com.myProject.utilities.Driver.driver;
 
 public class OpinionSteps {
     private final List<Map<String, String>> articleDataList = new ArrayList<>();
-    private final Map<String, Integer> wordCount = new HashMap<>();
     OpinionPage opinionPage = new OpinionPage();
 
 
@@ -40,7 +44,7 @@ public class OpinionSteps {
 
         List<WebElement> articles = driver.findElements(By.tagName("article"));
 
-        for (int i = 0; i < 1 && i < articles.size(); i++) {
+        for (int i = 0; i < 5 && i < articles.size(); i++) {
             WebElement article = articles.get(i);
 
             // Extract title
@@ -98,8 +102,9 @@ public class OpinionSteps {
             System.out.println("---------------");
         }
     }
+
     @Then("The titles are translated to English")
-    public void theTitlesAreTranslatedToEnglish() {
+    public void theTitlesAreTranslatedToEnglish() throws IOException, InterruptedException {
         if (articleDataList.isEmpty()) {
             System.out.println("No articles available for translation.");
             return;
@@ -110,6 +115,9 @@ public class OpinionSteps {
 
             // Translate title
             String translatedTitle = APIUtils.translateText(title, "en");
+
+            // Add translated title to the article data
+            articleData.put("translatedTitle", translatedTitle);
 
             System.out.println("Original Title: " + title);
             System.out.println("Translated Title: " + translatedTitle);
@@ -127,13 +135,25 @@ public class OpinionSteps {
         // Collect all words from translated titles
         List<String> allWords = new ArrayList<>();
         for (Map<String, String> articleData : articleDataList) {
-            String translatedTitle = articleData.get("translatedTitle");
-            if (translatedTitle == null) {
-                continue; // Skip if translatedTitle is null
+            if (articleData == null) {
+                System.out.println("Skipping null article data entry.");
+                continue;
             }
 
-            String[] words = translatedTitle.split("\\s+"); // Split into words
-            allWords.addAll(Arrays.asList(words)); // Add all words to the list
+            String translatedTitle = articleData.get("translatedTitle");
+            if (translatedTitle == null || translatedTitle.isEmpty()) {
+                System.out.println("Skipping article due to null or empty translated title.");
+                continue;
+            }
+
+            // Split into words and add to the list
+            String[] words = translatedTitle.split("\\s+");
+            allWords.addAll(Arrays.asList(words));
+        }
+
+        if (allWords.isEmpty()) {
+            System.out.println("No valid words found to analyze for repeated words.");
+            return;
         }
 
         // Count word occurrences
@@ -152,5 +172,21 @@ public class OpinionSteps {
                 System.out.println(word + ": " + count);
             }
         });
+
+        System.out.println("Repeated words analysis completed successfully.");
+    }
+
+    @Given("Convert language")
+    public static String translateText() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://rapid-translate-multi-traduction.p.rapidapi.com/t"))
+                .header("x-rapidapi-key", "ea0803d75fmsha8ca955d52b3e20p159cdcjsnd3fcae71a28d")
+                .header("x-rapidapi-host", "rapid-translate-multi-traduction.p.rapidapi.com")
+                .header("Content-Type", "application/json")
+                .method("POST", HttpRequest.BodyPublishers.ofString("{\"from\":\"en\",\"to\":\"es\",\"q\":\"Hello ! Rapid Translate Multi Traduction\"}"))
+                .build();
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+        return response.body();
     }
 }
