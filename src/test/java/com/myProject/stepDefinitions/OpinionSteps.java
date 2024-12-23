@@ -116,8 +116,12 @@ public class OpinionSteps {
             // Translate title
             String translatedTitle = APIUtils.translateText(title, "en");
 
-            // Add translated title to the article data
+            // Remove special characters from the beginning and end
+            translatedTitle = translatedTitle.replaceAll("^\\p{P}+", "").replaceAll("\\p{P}+$", "");
+
+           // Add translated title to the article data
             articleData.put("translatedTitle", translatedTitle);
+
 
             System.out.println("Original Title: " + title);
             System.out.println("Translated Title: " + translatedTitle);
